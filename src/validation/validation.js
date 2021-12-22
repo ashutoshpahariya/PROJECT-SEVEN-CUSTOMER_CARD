@@ -1,5 +1,5 @@
 const validator = require("email-validator");
-
+const mongoose=require("mongoose")
 const isValid = function (value) {
     if (typeof value === 'undefined' || value === null) return false//it cheks is there value is null or undefined
     if (typeof value === 'string' && value.trim().length === 0) return false//it checks the value conAtain only space or not 
@@ -14,12 +14,6 @@ const isString = function (value) {
     if (typeof value === 'string' && value.trim().length === 0) return false//it checks the value conAtain only space or not 
     return true;
 }
-// const isValidMobileNum = function (value) {
-//     if (!(/^(\+\d{1,3}[- ]?)?\d{10}$/.test(value.trim()))) {
-//         return false
-//     }
-//     return true
-// }
 
 const isValidMobileNum = function (value) {
     if (!(/^[6-9]\d{9}$/.test(value))) {
@@ -27,7 +21,6 @@ const isValidMobileNum = function (value) {
     }
     return true
 }
-
 
 const isValidSyntaxOfEmail = function (value) {
     if (!(validator.validate(value.trim()))) {
@@ -43,6 +36,9 @@ let alphabetTestOfString = function (value) {
     }
     return true
 }
+const isValidObjectId = function (objectId) {
+    return mongoose.Types.ObjectId.isValid(objectId)
+}
 
 
 module.exports = {
@@ -51,5 +47,5 @@ module.exports = {
     isValidSyntaxOfEmail,
     isValidMobileNum,
     alphabetTestOfString,
-    isString
+    isString,isValidObjectId
 }

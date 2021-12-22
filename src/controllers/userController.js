@@ -1,30 +1,31 @@
 const userModel = require('../models/userModel');
 const validateBody = require('../validation/validation');
 const jwt = require("jsonwebtoken");
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+const myPlaintextPassword = 's0/\/\P4$$w0rD';
+const someOtherPlaintextPassword = 'not_bacon';
 
 
+//----------------------FIRST API CREATE USER
 const userRegistration = async (req, res) => {
     try {
         const myBody = req.body
-        const { title, name, phone, email, password, address } = myBody;
-
+        const { fname, lname, email, profileImage, phone, password, address } = myBody;
         if (!validateBody.isValidRequestBody(myBody)) {
             return res.status(400).send({ status: false, message: "Please provide data for successful registration" });
         }
-        if (!validateBody.isValid(title)) {
-            return res.status(400).send({ status: false, message: "Please provide tittle or title field" });
+        if (!validateBody.isValid(fname)) {
+            return res.status(400).send({ status: false, message: "Please provide fname or fname field" });
         }
-        if (!validateBody.isValid(name)) {
-            return res.status(400).send({ status: false, message: "Please provide name or name field" });
+        if (!validateBody.alphabetTestOfString(fname)) {
+            return res.status(400).send({ status: false, message: "You can't use special character or number in fname" });
         }
-        if (!validateBody.alphabetTestOfString(name)) {
-            return res.status(400).send({ status: false, message: "You can't use special character or number in name" });
+        if (!validateBody.isValid(lname)) {
+            return res.status(400).send({ status: false, message: "Please provide lname or lname field" });
         }
-        if (!validateBody.isValid(phone)) {
-            return res.status(400).send({ status: false, message: "Please provide phone number or phone field" });
-        }
-        if (!validateBody.isValidMobileNum(phone)) {
-            return res.status(400).send({ status: false, message: 'Please provide a valid phone number.' })
+        if (!validateBody.alphabetTestOfString(lname)) {
+            return res.status(400).send({ status: false, message: "You can't use special character or number in lname" });
         }
         if (!validateBody.isValid(email)) {
             return res.status(400).send({ status: false, message: "Please provide Email id or email field" });;
@@ -32,28 +33,59 @@ const userRegistration = async (req, res) => {
         if (!validateBody.isValidSyntaxOfEmail(email)) {
             return res.status(404).send({ status: false, message: "Please provide a valid Email Id" });
         }
+        const DuplicateEmail = await userModel.findOne({ email});
+        if (DuplicateEmail) {
+            return res.status(400).send({ status: false, message: "This email Id already exists with another user" });
+        }
+
+        if (!validateBody.isValid(profileImage)) {
+            return res.status(400).send({ status: false, message: "Please provide profileImage  or profileImage field" });
+        }
+        if (!validateBody.isValid(phone)) {
+            return res.status(400).send({ status: false, message: "Please provide phone number or phone field" });
+        }
+        if (!(/^[6-9]\d{9}$/.test(phone.trim()))) {
+            return res.status(400).send({ status: false, message: 'Please provide a valid phone number.' })
+        }
+        const duplicatePhone = await userModel.findOne({ phone })
+        if (duplicatePhone) {
+            return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
+        }
         if (!validateBody.isValid(password)) {
             return res.status(400).send({ status: false, message: "Please provide password or password field" });;
         }
-        let size = Object.keys(password.trim()).length
-        if (size < 8 || size > 15) {
+        if (!(password.length >= 8 && password.length <= 15)) {
             return res.status(400).send({ status: false, message: "Please provide password with minimum 8 and maximum 14 characters" });;
         }
-        let isDBexists = await userModel.find();
-        let dbLen = isDBexists.length
-        if (dbLen != 0) {
-            const DuplicateEmail = await userModel.find({ email: email });
-            const emailFound = DuplicateEmail.length;
-            if (emailFound != 0) {
-                return res.status(400).send({ status: false, message: "This email Id already exists with another user" });
-            }
-            const duplicatePhone = await userModel.findOne({ phone: phone })
-            if (duplicatePhone) {
-                return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
-            }
+        // if (password.length < 8 || password.length > 15) {
+        //     return res.status(400).send({ status: false, message: "Please provide password with minimum 8 and maximum 14 characters" });;
+        // }
+        if (!validateBody.isValid(address)) {
+            return res.status(400).send({ status: false, message: "Please provide address or address field" });
         }
-        let registration = { title, name, phone, email, password, address }
-        const userData = await userModel.create(registration);
+        if (!validateBody.isValid(address.shipping.street)) {
+            return res.status(400).send({ status: false, message: "Please provide address shipping street or address shipping street field" });
+        }
+        if (!validateBody.isValid(address.shipping.city)) {
+            return res.status(400).send({ status: false, message: "Please provide address shipping city or address shipping city field" });
+        }
+        if (!validateBody.isValid(address.shipping.pincode)) {
+            return res.status(400).send({ status: false, message: "Please provide address shipping pincode or address shipping pincode field" });
+        }
+        if (!validateBody.isValid(address.billing.street)) {
+            return res.status(400).send({ status: false, message: "Please provide address billing street or address billing street field" });
+        }
+        if (!validateBody.isValid(address.billing.city)) {
+            return res.status(400).send({ status: false, message: "Please provide address billing city or address billing city field" });
+        }
+        if (!validateBody.isValid(address.billing.pincode)) {
+            return res.status(400).send({ status: false, message: "Please provide address billing pincode or address billing pincode field" });
+        }
+           
+         //-----------SAVE USER PASSWORD WITH LOOK LIKE HASHED PASSWORD STORED IN THE DATABASE
+        const hash = bcrypt.hashSync(password, saltRounds);
+        let userregister = { fname, lname, email, profileImage, phone, password: hash, address }
+        const userData = await userModel.create(userregister);
         return res.status(201).send({ status: true, message: 'Success', data: userData });
     }
     catch (err) {
@@ -61,12 +93,12 @@ const userRegistration = async (req, res) => {
     }
 }
 
-
+//-----------------SECOND API USER LOGIN
 const userLogin = async (req, res) => {
     try {
-        const myBody1 = req.body
-        const { email, password } = myBody1
-        if (!validateBody.isValidRequestBody(myBody1)) {
+        const body = req.body
+        const { email, password } = body
+        if (!validateBody.isValidRequestBody(body)) {
             return res.status(400).send({ status: false, message: "Please provide data for successful login" });
         }
         if (!validateBody.isValid(email)) {
@@ -78,17 +110,30 @@ const userLogin = async (req, res) => {
         if (!validateBody.isValid(password)) {
             return res.status(400).send({ status: false, message: "Please provide password or password field" });;
         }
-        let user = await userModel.findOne({ email: email, password: password });
+        let user = await userModel.findOne({ email: email });
         if (user) {
-            const { _id, name, phone } = user
-            let payload = { userId: _id, email: email, phone: phone };
-            const generatedToken = jwt.sign(payload, "functionupridersprivatekey", { expiresIn: '30m' });
-            res.header('user-login-key', generatedToken);
-            return res.status(200).send({
-                Message: name + " you have logged in Succesfully",
-                userId: user._id,
-                token: generatedToken,
-            });
+            //-----------CHECK USER PASSWORD WITH HASHED PASSWORD STORED IN THE DATABASE
+            const validPassword = await bcrypt.compareSync(body.password, user.password);
+            if (validPassword) {
+                //-----------JWT GENERATE WITH EXPIRY TIME AND PRIVATE KEY
+                const generatedToken = jwt.sign({
+                    userId: user._id,
+                    iat: Math.floor(Date.now() / 1000),
+                    exp: Math.floor(Date.now() / 1000) + 60 * 180
+                }, 'developerprivatekey')
+
+                res.header('x-api-key', generatedToken);
+                return res.status(200).send({
+                    "status": true,
+                    Message: " user logged Succesfull",
+                    data: {
+                        userId: user._id,
+                        token: generatedToken,
+                    }
+                });
+            } else {
+                res.status(401).send({ error: "User does not exist with that password" });
+            }
         } else {
             return res.status(400).send({ status: false, message: "Oops...Invalid credentials" });
         }
@@ -98,5 +143,112 @@ const userLogin = async (req, res) => {
 };
 
 
-module.exports.userRegistration = userRegistration;
-module.exports.userLogin = userLogin;
+//-----------------THIRD API GET USER DETAILS
+const getUserList = async (req, res) => {
+    try {
+        let paramsId = req.params.userId
+        let checkid = validateBody.isValidObjectId(paramsId);
+        if (!checkid) {
+            return res.status(400).send({ status: false, message: "Please Provide a valid userId in path params" });;
+        }
+        let checkData = await userModel.findOne({ _id: paramsId });
+        if (!checkData) {
+            return res.status(404).send({ status: false, msg: "There is no user exist with this id" });
+        }
+        return res.status(200).send({ status: true, message: 'User profile details', data: checkData });
+    }
+    catch (err) {
+        console.log(err)
+        return res.status(500).send({ status: false, msg: err.message });
+    }
+}
+
+
+//-----------------THIRD API UPDATE USER DETAILS
+const updateUserList = async (req, res) => {
+    try {
+        let userId = req.params.userId;
+        let checkid = validateBody.isValidObjectId(userId);
+
+        if (!checkid) {
+            return res.status(400).send({ status: false, message: "Please Provide a valid userId in path params" });;
+        }
+        const user = await userModel.findById(userId)
+        if (!user) {
+            return res.status(404).send({ status: false, message: "User does not exist with this userid" })
+        }
+        let updateBody = req.body
+        if (!validateBody.isValidRequestBody(updateBody)) {
+            return res.status(400).send({ status: false, message: "Please provide data to proceed your update request" });
+        }
+        const { fname, lname, email, profileImage, phone, password, address } = updateBody
+        if (!validateBody.isString(fname)) {
+            return res.status(400).send({ status: false, message: "If you are providing fname key you also have to provide its value" });
+        }
+        if (!validateBody.isString(lname)) {
+            return res.status(400).send({ status: false, message: "If you are providing lname key you also have to provide its value" });
+        }
+        if (!validateBody.isString(email)) {
+            return res.status(400).send({ status: false, message: "If you are providing email key you also have to provide its value" });
+        }
+        if (!validateBody.isString(profileImage)) {
+            return res.status(400).send({ status: false, message: "If you are providing profileImage key you also have to provide its value" });
+        }
+        if (!validateBody.isString(phone)) {
+            return res.status(400).send({ status: false, message: "If you are providing phone key you also have to provide its value" });
+        }
+        if (!(/^[6-9]\d{9}$/.test(phone.trim()))) {
+            return res.status(400).send({ status: false, message: 'Please provide a valid phone number.' })
+        }
+        if (!validateBody.isString(password)) {
+            return res.status(400).send({ status: false, message: "If you are providing password key you also have to provide its value" });
+        }
+        if (!validateBody.isString(address)) {
+            return res.status(400).send({ status: false, message: "If you are providing address key you also have to provide its value" });
+        }
+        if (!validateBody.isString(address.shipping.street)) {
+            return res.status(400).send({ status: false, message: "If you are providing address shipping street key you also have to provide its value" });
+        }
+        if (!validateBody.isString(address.shipping.city)) {
+            return res.status(400).send({ status: false, message: "If you are providing address shipping city key you also have to provide its value" });
+        }
+        if (!validateBody.isString(address.shipping.pincode)) {
+            return res.status(400).send({ status: false, message: "If you are providing address shipping pincode key you also have to provide its value" });
+        }
+        if (!validateBody.isString(address.billing.street)) {
+            return res.status(400).send({ status: false, message: "If you are providing address billing street key you also have to provide its value" });
+        }
+        if (!validateBody.isString(address.billing.city)) {
+            return res.status(400).send({ status: false, message: "If you are providing address billing city key you also have to provide its value" });
+        }
+        if (!validateBody.isString(address.billing.pincode)) {
+            return res.status(400).send({ status: false, message: "If you are providing address billing pincode key you also have to provide its value" });
+        }
+        const duplicateemail = await userModel.findOne({ email: email });
+        if (duplicateemail) {
+            return res.status(400).send({ status: false, message: "This user email is already exists with another user" });
+        }
+        const duplicatephone = await userModel.findOne({ phone: phone })
+        if (duplicatephone) {
+            return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
+        }
+        const hash = bcrypt.hashSync(password, saltRounds);
+        let data = await userModel.findOneAndUpdate({ _id: userId }, { fname: fname, lname: lname, email: email, profileImage: profileImage, phone: phone, password: password.hash, address: address });
+        if (data) {
+            return res.status(200).send({ status: true, message: 'User profile updated', data: data });
+        }
+        else {
+            return res.status(404).send({ status: false, message: "This userId does not exist" });
+        }
+    } catch (err) {
+        console.log(err)
+        return res.status(500).send({ message: err.message });
+    }
+};
+
+module.exports = {
+    userRegistration,
+    userLogin,
+    getUserList,
+    updateUserList
+}
