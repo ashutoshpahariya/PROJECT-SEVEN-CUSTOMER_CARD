@@ -1,15 +1,17 @@
 const jwt = require('jsonwebtoken')
 
-//-----------------------------------------------------------------------------//
 
 const getUserDetails = async function (req, res, next) {
     try {
-        // let token = req.header['x-api-key']  //-----// handling of invalid token
-        // if (!token) {
-        //     return res.status(400).send({ status: false, message: 'You are not logged in, Please login to proceed your request' })
-        // }
-        let decodedToken = jwt.verify(token, "developerprivatekey")
+        const token = req.header('Authorization')
+        if (!token) {
+            return res.status(400).send({ status: false, message: 'You are not logged in, Please login to proceed your request' })
+        }
+        const usertoken = token.split(' ')
+        let decodedToken = jwt.verify(usertoken[1], "developerprivatekey")
+
         if (decodedToken) {
+            console.log(decodedToken, "decodetoken")
             req.userId = decodedToken.userId
             next();
         } else {
@@ -20,6 +22,5 @@ const getUserDetails = async function (req, res, next) {
     }
 }
 
-//-----------------------------------------------------------------------------//
-module.exports.getUserDetails = getUserDetails;
-//-----------------------------------------------------------------------------//
+
+module.exports.getUserDetails = getUserDetails

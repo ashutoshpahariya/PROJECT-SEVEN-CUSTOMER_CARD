@@ -33,7 +33,7 @@ const userRegistration = async (req, res) => {
         if (!validateBody.isValidSyntaxOfEmail(email)) {
             return res.status(404).send({ status: false, message: "Please provide a valid Email Id" });
         }
-        const DuplicateEmail = await userModel.findOne({ email});
+        const DuplicateEmail = await userModel.findOne({ email });
         if (DuplicateEmail) {
             return res.status(400).send({ status: false, message: "This email Id already exists with another user" });
         }
@@ -54,12 +54,9 @@ const userRegistration = async (req, res) => {
         if (!validateBody.isValid(password)) {
             return res.status(400).send({ status: false, message: "Please provide password or password field" });;
         }
-        if (!(password.length >= 8 && password.length <= 15)) {
+        if (!(password.trim().length >= 8 && password.trim().length <= 15)) {
             return res.status(400).send({ status: false, message: "Please provide password with minimum 8 and maximum 14 characters" });;
         }
-        // if (password.length < 8 || password.length > 15) {
-        //     return res.status(400).send({ status: false, message: "Please provide password with minimum 8 and maximum 14 characters" });;
-        // }
         if (!validateBody.isValid(address)) {
             return res.status(400).send({ status: false, message: "Please provide address or address field" });
         }
@@ -81,8 +78,8 @@ const userRegistration = async (req, res) => {
         if (!validateBody.isValid(address.billing.pincode)) {
             return res.status(400).send({ status: false, message: "Please provide address billing pincode or address billing pincode field" });
         }
-           
-         //-----------SAVE USER PASSWORD WITH LOOK LIKE HASHED PASSWORD STORED IN THE DATABASE
+
+        //-----------SAVE USER PASSWORD WITH LOOK LIKE HASHED PASSWORD STORED IN THE DATABASE
         const hash = bcrypt.hashSync(password, saltRounds);
         let userregister = { fname, lname, email, profileImage, phone, password: hash, address }
         const userData = await userModel.create(userregister);
@@ -107,9 +104,11 @@ const userLogin = async (req, res) => {
         if (!validateBody.isValidSyntaxOfEmail(email)) {
             return res.status(404).send({ status: false, message: "Please provide a valid Email Id" });
         }
-        if (!validateBody.isValid(password)) {
+        let pin = password.trim()
+        if (!validateBody.isValid(pin)) {
             return res.status(400).send({ status: false, message: "Please provide password or password field" });;
         }
+
         let user = await userModel.findOne({ email: email });
         if (user) {
             //-----------CHECK USER PASSWORD WITH HASHED PASSWORD STORED IN THE DATABASE
@@ -122,7 +121,6 @@ const userLogin = async (req, res) => {
                     exp: Math.floor(Date.now() / 1000) + 60 * 180
                 }, 'developerprivatekey')
 
-                res.header('x-api-key', generatedToken);
                 return res.status(200).send({
                     "status": true,
                     Message: " user logged Succesfull",
@@ -146,14 +144,19 @@ const userLogin = async (req, res) => {
 //-----------------THIRD API GET USER DETAILS
 const getUserList = async (req, res) => {
     try {
-        let paramsId = req.params.userId
-        let checkid = validateBody.isValidObjectId(paramsId);
-        if (!checkid) {
-            return res.status(400).send({ status: false, message: "Please Provide a valid userId in path params" });;
+        let userId = req.params.userId
+        let tokenId = req.userId
+
+        if (!(validateBody.isValidObjectId(userId) && validateBody.isValidObjectId(tokenId))) {
+            return res.status(400).send({ status: false, message: "userId or token is not valid" });;
         }
-        let checkData = await userModel.findOne({ _id: paramsId });
+
+        let checkData = await userModel.findOne({ _id: userId });
         if (!checkData) {
             return res.status(404).send({ status: false, msg: "There is no user exist with this id" });
+        }
+        if (!(userId.toString() == tokenId.toString())) {
+            return res.status(401).send({ status: false, message: `Unauthorized access! Owner info doesn't match` });
         }
         return res.status(200).send({ status: true, message: 'User profile details', data: checkData });
     }
@@ -163,19 +166,22 @@ const getUserList = async (req, res) => {
     }
 }
 
-
-//-----------------THIRD API UPDATE USER DETAILS
+//-----------------FOURTH API UPDATE USER DETAILS
 const updateUserList = async (req, res) => {
     try {
-        let userId = req.params.userId;
-        let checkid = validateBody.isValidObjectId(userId);
+        let userId = req.params.userId
+        let tokenId = req.userId
 
-        if (!checkid) {
-            return res.status(400).send({ status: false, message: "Please Provide a valid userId in path params" });;
+        if (!(validateBody.isValidObjectId(userId) && validateBody.isValidObjectId(tokenId))) {
+            return res.status(400).send({ status: false, message: "userId or token is not valid" });;
         }
+
         const user = await userModel.findById(userId)
         if (!user) {
             return res.status(404).send({ status: false, message: "User does not exist with this userid" })
+        }
+        if (!(userId.toString() == tokenId.toString())) {
+            return res.status(401).send({ status: false, message: `Unauthorized access! Owner info doesn't match` });
         }
         let updateBody = req.body
         if (!validateBody.isValidRequestBody(updateBody)) {
@@ -191,14 +197,22 @@ const updateUserList = async (req, res) => {
         if (!validateBody.isString(email)) {
             return res.status(400).send({ status: false, message: "If you are providing email key you also have to provide its value" });
         }
+        const duplicateemail = await userModel.findOne({ email: email });
+        if (duplicateemail) {
+            return res.status(400).send({ status: false, message: "This user email is already exists with another user" });
+        }
         if (!validateBody.isString(profileImage)) {
             return res.status(400).send({ status: false, message: "If you are providing profileImage key you also have to provide its value" });
         }
         if (!validateBody.isString(phone)) {
             return res.status(400).send({ status: false, message: "If you are providing phone key you also have to provide its value" });
         }
-        if (!(/^[6-9]\d{9}$/.test(phone.trim()))) {
-            return res.status(400).send({ status: false, message: 'Please provide a valid phone number.' })
+        if (!/^(?:(?:\+|0{0,2})91(\s*[\-]\s*)?|[0]?)?[6789]\d{9}$/.test(phone.trim())) {
+            return res.status(400).send({status: false,message: `Phone number should be a  valid indian number`}); 
+        }
+        const duplicatephone = await userModel.findOne({ phone: phone })
+        if (duplicatephone) {
+            return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
         }
         if (!validateBody.isString(password)) {
             return res.status(400).send({ status: false, message: "If you are providing password key you also have to provide its value" });
@@ -224,16 +238,8 @@ const updateUserList = async (req, res) => {
         if (!validateBody.isString(address.billing.pincode)) {
             return res.status(400).send({ status: false, message: "If you are providing address billing pincode key you also have to provide its value" });
         }
-        const duplicateemail = await userModel.findOne({ email: email });
-        if (duplicateemail) {
-            return res.status(400).send({ status: false, message: "This user email is already exists with another user" });
-        }
-        const duplicatephone = await userModel.findOne({ phone: phone })
-        if (duplicatephone) {
-            return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
-        }
         const hash = bcrypt.hashSync(password, saltRounds);
-        let data = await userModel.findOneAndUpdate({ _id: userId }, { fname: fname, lname: lname, email: email, profileImage: profileImage, phone: phone, password: password.hash, address: address });
+        let data = await userModel.findOneAndUpdate({ _id: userId }, { fname: fname, lname: lname, email: email, profileImage: profileImage, phone: phone, password: password.hash, address: address }, { new: true });
         if (data) {
             return res.status(200).send({ status: true, message: 'User profile updated', data: data });
         }
@@ -246,9 +252,4 @@ const updateUserList = async (req, res) => {
     }
 };
 
-module.exports = {
-    userRegistration,
-    userLogin,
-    getUserList,
-    updateUserList
-}
+module.exports = { userRegistration, userLogin, getUserList, updateUserList }

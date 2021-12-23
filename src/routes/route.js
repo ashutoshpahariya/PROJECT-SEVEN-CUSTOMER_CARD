@@ -26,3 +26,6 @@ router.put('/user/:userId',myMiddleware.getUserDetails,userController.updateUser
 router.post('/write-file-aws',awsController.awsurl)
 
 module.exports = router;
+
+
+
