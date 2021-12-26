@@ -22,12 +22,13 @@ const isValidMobileNum = function (value) {
     return true
 }
 
-const isValidSyntaxOfEmail = function (value) {
-    if (!(validator.validate(value.trim()))) {
-        return false
-    }
-    return true
-}
+   const isValidSyntaxOfEmail = function (value) {
+       if (!(validator.validate(value))) {
+           return false
+       }
+       return true
+   }
+
 
 let alphabetTestOfString = function (value) {
     let regex = /^[A-Za-z ]+$/
@@ -39,7 +40,6 @@ let alphabetTestOfString = function (value) {
 const isValidObjectId = function (objectId) {
     return mongoose.Types.ObjectId.isValid(objectId)
 }
-
 
 module.exports = {
     isValid,

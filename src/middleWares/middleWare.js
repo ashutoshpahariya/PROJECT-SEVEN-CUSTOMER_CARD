@@ -12,7 +12,6 @@ const getUserDetails = async function (req, res, next) {
         let decodedToken = jwt.verify(usertoken[1], "developerprivatekey")
 
         if (decodedToken) {
-            console.log(decodedToken, "decodetoken")
             req.userId = decodedToken.userId
             next();
         } else {
