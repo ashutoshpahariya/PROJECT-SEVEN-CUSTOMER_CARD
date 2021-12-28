@@ -188,14 +188,17 @@ const updateProduct = async function (req, res) {
         let requestBody = req.body
         const productId = req.params.productId
         console.log(productId)
+
         //atleast one value for update
         if (!validateBody.isValidRequestBody(requestBody)) {
             res.status(400).send({ status: false, message: 'Invalid request parameters. Please provide  details to update' })
             return
         }
+
         if (!validateBody.isValidObjectId(productId)) {
             return res.status(404).send({ status: false, message: "productId is not valid" })
         }
+
         const product = await productModel.findOne({ _id: productId, isDeleted: false, })
         console.log(product)
 
@@ -206,7 +209,7 @@ const updateProduct = async function (req, res) {
         //filter
         let { title, description, price, currencyId, currencyFormat, isFreeShipping, productImage, style, availableSizes, installments } = requestBody
         if (title || description || price || currencyId || currencyFormat || isFreeShipping || productImage || style || availableSizes || installments) {
-            if (!validateBody.isString(title)) {
+            if (!validateBody.validString(title)) {
                 return res.status(400).send({ status: false, message: "title is missing ! Please provide the title to update." })
             } else {
                 const duplicateTitle = await productModel.findOne({ title: title });
@@ -217,15 +220,15 @@ const updateProduct = async function (req, res) {
 
             }
 
-            if (!validateBody.isString(description)) {
+            if (!validateBody.validString(description)) {
                 return res.status(400).send({ status: false, message: "description is missing ! Please provide the description to update." })
             }
 
-            if (!validateBody.isString(price) || (price <= 0)) {
+            if (!validateBody.validString(price) || (price <= 0)) {
                 return res.status(400).send({ status: false, message: "price is missing ! Please provide the price to update." })
             }
 
-            if (!validateBody.isString(currencyId)) {
+            if (!validateBody.validString(currencyId)) {
                 return res.status(400).send({ status: false, message: "currencyId is missing ! Please provide the currency to update." })
 
             } if (currencyId) {
@@ -235,7 +238,7 @@ const updateProduct = async function (req, res) {
                 }
             }
 
-            if (!validateBody.isString(currencyFormat)) {
+            if (!validateBody.validString(currencyFormat)) {
                 return res.status(400).send({ status: false, message: "currencyformat is missing ! Please provide the currencyformat to update." })
             } if (currencyFormat) {
                 if (currencyFormat !== '₹') {
@@ -243,7 +246,7 @@ const updateProduct = async function (req, res) {
                     return
                 }
             }
-            if (!validateBody.isString(isFreeShipping)) {
+            if (!validateBody.validString(isFreeShipping)) {
                 return res.status(400).send({ status: false, message: " isFreeShipping is missing ! Please provide isFreeShipping to update." })
             }
             if (isFreeShipping) {
@@ -253,45 +256,36 @@ const updateProduct = async function (req, res) {
                 }
             }
 
-            if (!validateBody.isString(style)) {
+            if (!validateBody.validString(style)) {
                 return res.status(400).send({ status: false, message: "style is missing ! Please provide the style to update." })
             }
 
 
-            if (!validateBody.isString(availableSizes)) {
+            if (!validateBody.validString(availableSizes)) {
                 return res.status(400).send({ status: false, message: "available sizes is missing ! Please provide the available sizes to update." })
             }
 
             if (availableSizes) {
                 let array = availableSizes.split(",").map(x => x.trim())
+                console.log(array)
                 for (let i = 0; i < array.length; i++) {
                     if (!(["S", "XS", "M", "X", "L", "XXL", "XL"].includes(array[i]))) {
                         return res.status(400).send({ status: false, msg: `Available sizes must be among ${["S", "XS", "M", "X", "L", "XXL", "XL"].join(',')}` })
                     }
                 }
-
             }
-
-            if (!validateBody.isString(installments)) {
+            if (!validateBody.validString(installments)) {
                 return res.status(400).send({ status: false, message: " installments is missing ! Please provide installment to update." })
             }
-            console.log(req.body)
+
             let files = req.files;
             if ((files && files.length > 0)) {
                 const productImage = await uploadFile(files[0])
-                let updateProduct = await productModel.findOneAndUpdate({ _id: productId }, {
-                    title: title, description: description, price: price, currencyId: currencyId,
-                    currencyFormat: currencyFormat, productImage: productImage, style: style, availableSizes: availableSizes,
-                    installments: installments, isFreeShipping: isFreeShipping
-                }, { new: true });
+                let updateProduct = await productModel.findOneAndUpdate({ _id: productId }, { title: title, description: description, price: price, currencyId: currencyId, currencyFormat: currencyFormat, productImage: productImage, style: style, availableSizes: availableSizes, installments: installments, isFreeShipping: isFreeShipping }, { new: true });
                 console.log(updateProduct)
                 res.status(200).send({ status: true, message: "product updated successfully", data: updateProduct });
             } else {
-                let updateProduct = await productModel.findOneAndUpdate({ _id: productId }, {
-                    title: title, description: description,
-                    price: price, currencyId: currencyId, currencyFormat: currencyFormat, style: style,
-                    availableSizes: availableSizes, installments: installments, isFreeShipping: isFreeShipping
-                }, { new: true });
+                let updateProduct = await productModel.findOneAndUpdate({ _id: productId }, { title: title, description: description, price: price, currencyId: currencyId, currencyFormat: currencyFormat, style: style, availableSizes: availableSizes, installments: installments, isFreeShipping: isFreeShipping }, { new: true });
                 res.status(200).send({ status: true, message: "product updated successfully", data: updateProduct });
             }
         }
@@ -302,7 +296,6 @@ const updateProduct = async function (req, res) {
         res.status(500).send({ status: false, message: error.message })
     }
 }
-
 //-----------------FIFTH API DELETE PRODUCT FROM DB
 const deleteProduct = async (req, res) => {
     try {
