@@ -9,7 +9,13 @@ const isValid = function (value) {
 const isValidRequestBody = function (requestBody) {
     return Object.keys(requestBody).length > 0;// it checks, is there any key is available or not in provided body
 }
+const isValidRequestQuery = function (requestquery) {
+    return Object.keys(requestquery).length > 0;// it checks, is there any key is available or not in provided body
+}
 
+const isValidObjectId = function(objectId) {
+    return mongoose.Types.ObjectId.isValid(objectId)
+}
 const isString = function (value) {
     if (typeof value === 'string' && value.trim().length === 0) return false//it checks the value conAtain only space or not 
     return true;
@@ -37,9 +43,6 @@ let alphabetTestOfString = function (value) {
     }
     return true
 }
-const isValidObjectId = function (objectId) {
-    return mongoose.Types.ObjectId.isValid(objectId)
-}
 
 module.exports = {
     isValid,
@@ -47,5 +50,5 @@ module.exports = {
     isValidSyntaxOfEmail,
     isValidMobileNum,
     alphabetTestOfString,
-    isString,isValidObjectId
+    isString,isValidObjectId,isValidRequestQuery
 }
