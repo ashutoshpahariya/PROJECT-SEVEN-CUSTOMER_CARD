@@ -25,21 +25,8 @@ const productSchema = new mongoose.Schema({
     deletedAt: Date,
 
     isDeleted: { type: Boolean, default: false },
-      address:
-    {
-        shipping:
-        {
-            street: { type: String,  trim: true },
-            city: { type: String,  trim: true },
-            pincode: { type: Number, trim: true }
-        },
-        billing:
-        {
-            street: { type: String,  trim: true },
-            city: { type: String,  trim: true },
-            pincode: { type: Number, trim: true }
-        }
-    }
+
+    
 
 }, { timestamps: true })
 

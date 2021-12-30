@@ -7,10 +7,12 @@ const myPlaintextPassword = 's0/\/\P4$$w0rD';
 const someOtherPlaintextPassword = 'not_bacon';
 const aws = require("aws-sdk");
 
+
+//---------S3
 aws.config.update({
-    accessKeyId: "AKIAY3L35MCRRMC6253G",  // id
-    secretAccessKey: "88NOFLHQrap/1G2LqUy9YkFbFRe/GNERsCyKvTZA",  // like your secret password
-    region: "ap-south-1" // Mumbai region
+    accessKeyId: "AKIAY3L35MCRRMC6253G",//--ID
+    secretAccessKey: "88NOFLHQrap/1G2LqUy9YkFbFRe/GNERsCyKvTZA",//--LIKE YOUR SECRET PASSWORD
+    region: "ap-south-1"//--MUMBAI REGION
 });
 
 // this function uploads file to AWS and gives back the url for the file
@@ -122,6 +124,7 @@ const userRegistration = async (req, res) => {
         return res.status(201).send({ status: true, message: 'Success', data: userData });
     }
     catch (err) {
+        console.log(err)
         return res.status(500).send({ status: false, message: err.message });
     }
 }
@@ -155,7 +158,7 @@ const userLogin = async (req, res) => {
                 const generatedToken = jwt.sign({
                     userId: user._id,
                     iat: Math.floor(Date.now() / 1000),
-                    exp: Math.floor(Date.now() / 1000) + 60 * 180
+                    exp: Math.floor(Date.now() / 1000) + 60 * 360
                 }, 'developerprivatekey')
 
                 return res.status(200).send({
@@ -176,6 +179,7 @@ const userLogin = async (req, res) => {
         return res.status(500).send({ status: false, message: error.message });
     }
 };
+
 
 
 //-----------------THIRD API GET USER DETAILS
@@ -270,12 +274,12 @@ const updateUserList = async (req, res) => {
 
                 var x = JSON.stringify(address)
                 var y = JSON.parse(x)
-                if (y.shipping.street) { var shippingstreet = y.shipping.street}
-                if (y.shipping.city) { var shippingcity = y.shipping.city}
-                if (y.shipping.pincode) {var shippingpincode = y.shipping.pincode}
-                if (y.billing.street) {var billingstreet = y.billing.street}
-                if (y.billing.city) { var billingcity = y.billing.city}
-                if (y.billing.pincode) {var billingpincode = y.billing.pincode}
+                if (y.shipping.street) { var shippingstreet = y.shipping.street }
+                if (y.shipping.city) { var shippingcity = y.shipping.city }
+                if (y.shipping.pincode) { var shippingpincode = y.shipping.pincode }
+                if (y.billing.street) { var billingstreet = y.billing.street }
+                if (y.billing.city) { var billingcity = y.billing.city }
+                if (y.billing.pincode) { var billingpincode = y.billing.pincode }
 
             }
             // expect this function to take file as input and give url of uploaded file as output 

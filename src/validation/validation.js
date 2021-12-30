@@ -1,54 +1,77 @@
 const validator = require("email-validator");
-const mongoose=require("mongoose")
+const mongoose = require("mongoose")
 const isValid = function (value) {
-    if (typeof value === 'undefined' || value === null) return false//it cheks is there value is null or undefined
-    if (typeof value === 'string' && value.trim().length === 0) return false//it checks the value conAtain only space or not 
+
+    //--IT CHECK IS THERE VALUE IS NULL OR UNDEFINED
+    if (typeof value === 'undefined' || value === null) return false
+
+    //--IT CHECK THE VALUE CONTAIN ONLY SPACE OR NOT
+    if (typeof value === 'string' && value.trim().length === 0) return false
     return true;
 }
 
+
 const isValidRequestBody = function (requestBody) {
-    return Object.keys(requestBody).length > 0;// it checks, is there any key is available or not in provided body
+
+    //--IT CHECK IS THERE ANY KEY IS AVAILABLE OR NOT IN PROVIDED BODY
+    return Object.keys(requestBody).length > 0;
 }
 const isValidRequestQuery = function (requestquery) {
-    return Object.keys(requestquery).length > 0;// it checks, is there any key is available or not in provided body
+
+    //--IT CHECK IS THERE ANY KEY IS AVAILABLE OR NOT IN PROVIDED QUERY
+    return Object.keys(requestquery).length > 0;
 }
 
-const isValidObjectId = function(objectId) {
+const isValidObjectId = function (objectId) {
     return mongoose.Types.ObjectId.isValid(objectId)
 }
 const isString = function (value) {
-    if (typeof value === 'string' && value.trim().length === 0) return false//it checks the value conAtain only space or not 
+
+    //--IT CHECK THE VALUE CONTAIN ONLY SPACE OR NOT
+    if (typeof value === 'string' && value.trim().length === 0) return false
     return true;
 }
 
 const isValidMobileNum = function (value) {
+
+    //--INDIAN MOBILE PHONE NUMBER VALIDATION
     if (!(/^[6-9]\d{9}$/.test(value))) {
         return false
     }
     return true
 }
 
-   const isValidSyntaxOfEmail = function (value) {
-       if (!(validator.validate(value))) {
-           return false
-       }
-       return true
-   }
+const isValidSyntaxOfEmail = function (value) {
 
-
-let alphabetTestOfString = function (value) {
-    let regex = /^[A-Za-z ]+$/
-    if (!(regex.test(value))) {
+    //--EMAIL VALIDATION
+    if (!(validator.validate(value))) {
         return false
     }
     return true
 }
 
+
+let alphabetTestOfString = function (value) {
+
+    //--ALPHABET SEQUENCE VALIDATION
+    let regex = /^[A-Za-z ]+$/
+    if (!(regex.test(value))) {
+        return false
+
+    }
+
+    return true
+}
+
+const isValidstatus = function(status) {
+    return ['pending', 'cancelled', 'completed'].indexOf(status) !== -1
+}
+
+
+
+
 module.exports = {
-    isValid,
-    isValidRequestBody,
-    isValidSyntaxOfEmail,
-    isValidMobileNum,
-    alphabetTestOfString,
-    isString,isValidObjectId,isValidRequestQuery
+    isValid, isValidRequestBody, isValidSyntaxOfEmail,
+    isValidMobileNum, alphabetTestOfString, isString,
+     isValidObjectId, isValidRequestQuery, isValidstatus
 }
