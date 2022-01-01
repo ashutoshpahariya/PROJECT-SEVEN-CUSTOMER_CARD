@@ -44,11 +44,15 @@ const isValidMobileNum = function (value) {
 const isValidSyntaxOfEmail = function (value) {
 
     //--EMAIL VALIDATION
-    if (!(validator.validate(value))) {
+    if (!(validator.validate(value.trim()))) {
         return false
     }
     return true
 }
+const re = /^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/;
+const validateEmail = function(email) {
+    return re.test(email)
+};
 
 
 let alphabetTestOfString = function (value) {
@@ -70,7 +74,7 @@ const isValidstatus = function(status) {
 
 
 
-module.exports = {
+module.exports = {validateEmail,
     isValid, isValidRequestBody, isValidSyntaxOfEmail,
     isValidMobileNum, alphabetTestOfString, isString,
      isValidObjectId, isValidRequestQuery, isValidstatus

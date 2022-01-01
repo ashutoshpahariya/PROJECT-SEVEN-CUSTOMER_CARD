@@ -113,7 +113,6 @@ const userRegistration = async (req, res) => {
         if (!validateBody.isValid(address.billing.pincode)) {
             return res.status(400).send({ status: false, message: "Please provide address billing pincode or address billing pincode field" });
         }
-
         // expect this function to take file as input and give url of uploaded file as output 
         let uploadedFileURL = await uploadFile(files[0]);
 
@@ -226,7 +225,7 @@ const updateUserList = async (req, res) => {
         }
         const { fname, lname, email, profileImage, phone, password, address } = updateBody;
         if (!validateBody.isValidRequestBody(updateBody)) {
-            return res.status(400).send({ status: false, message: "Please provide data to proceed your update request" });
+            return res.status(400).send({ status: false, message: "Please provide data to proceed your update User details" });
         }
         if (fname || lname || email || profileImage || phone || password || address) {
             if (!validateBody.isString(fname)) {
@@ -314,5 +313,176 @@ const updateUserList = async (req, res) => {
         return res.status(500).send({ message: err.message });
     }
 };
+
+
+
+
+
+
+
+
+
+// const updateUserList = async function (req, res) {
+
+//     try {
+//       let files = req.files;
+//         const requestBody = req.body
+//         const params = req.params
+//         const userId = params.userId  //req.params.userId
+//         const userIdFromToken = req.userId
+  
+       
+//         if (!validateBody.isValidObjectId(userId)) {
+//             res.status(400).send({ status: false, message: `${userId} is not a valid user id` })
+//             return
+//         }
+  
+//         if (!validateBody.isValidObjectId(userIdFromToken)) {
+//             return res.status(400).send({ status: false, message: `${userIdFromToken} Invalid user id ` })
+//         }
+  
+//         const user = await userModel.findOne({ _id: userId})
+//         if (!user) {
+//             return res.status(404).send({ status: false, message: `user not found` })
+//         }
+  
+//         if(userId.toString() !== userIdFromToken) {
+//             res.status(401).send({status: false, message: `Unauthorized access! Owner info doesn't match`});
+//             return
+//         }
+  
+//         if (!validateBody.isValidRequestBody(requestBody)) {
+//             res.status(400).send({ status: false, message: 'No paramateres passed. book unmodified' })
+//             return
+//         }
+  
+//         // Extract params
+//         let { fname, lname,email,profileImage,phone,password, address} = requestBody;
+//         let obj={}
+//         if(validateBody.isString(fname)){
+//           obj['fname']=fname
+//         }
+//         if(validateBody.isString(lname)){
+//           obj['lname']=lname
+//         }
+  
+//       if(validateBody.isString(email)){
+//           if (!validateBody.validateEmail(email)) {
+//              return res.status(400).send({ status: false, message: `Email should be a valid email address` })
+//           }
+//           let isEmailAlredyPresent = await userModel.findOne({ email: requestBody.email })
+  
+//            if (isEmailAlredyPresent) {
+//             return res.status(400).send({ status: false, message: `Email Already Present` });
+//          }
+//             //already present, VALID(done)
+//             obj['email']=email
+//         }
+        
+//       if(validateBody.isValidMobileNum(phone)){
+//         if (!/^(?:(?:\+|0{0,2})91(\s*[\-]\s*)?|[0]?)?[6789]\d{9}$/.test(phone)) {
+//           return res.status(400).send({ status: false, message: `Mobile should be a valid number` });
+//         }
+//         let isPhoneAlredyPresent = await userModel.findOne({ phone: requestBody.phone })
+  
+//         if (isPhoneAlredyPresent) {
+//         return res.status(400).send({ status: false, message: `Phone Already Present` });
+//         }
+//         //already present, VALID(done)
+//         obj['phone']=phone
+//       }
+  
+//         if(validateBody.isString(password)){
+//           const encrypt = await bcrypt.hash(password, 10)
+//           obj['password']=encrypt
+//         }
+//         if (address) {
+//           address = JSON.parse(address)//converts text to json object
+//           if (address.shipping) {
+//               if (address.shipping.street) {
+//                   if (!validateBody.isString(address.shipping.street)) {
+//                       return res.status(400).send({ status: false, message: ' Please provide street' })
+//                   }
+//                 obj['address.shipping.street'] = address.shipping.street
+//               }
+//               if (address.shipping.city) {
+//                   if (!validateBody.isString(address.shipping.city)) {
+//                       return res.status(400).send({ status: false, message: ' Please provide city' })
+//                   }
+//                   obj['address.shipping.city'] = address.shipping.city
+//               }
+//               if (address.shipping.pincode) {
+//                   if (typeof address.shipping.pincode !== 'number'){
+//                       return res.status(400).send({ status: false, message: ' Please provide pincode' })
+//                   }
+//                   obj['address.shipping.pincode'] = address.shipping.pincode
+//               }
+//           }
+//           if (address.billing) {
+//             if (address.billing.street) {
+//                 if (!validateBody.isString(address.billing.street)) {
+//                     return res.status(400).send({ status: false, message: ' Please provide street' })
+//                 }
+//                 obj['address.billing.street'] = address.billing.street
+//             }
+//             if (address.billing.city) {
+//                 if (!validateBody.isString(address.billing.city)) {
+//                     return res.status(400).send({ status: false, message: ' Please provide city' })
+//                 }
+//                 obj['address.billing.city'] = address.billing.city
+//             }
+//             if (address.billing.pincode) {
+//                 if (typeof address.billing.pincode !== 'number') {
+//                     return res.status(400).send({ status: false, message: ' Please provide pincode' })
+//                 }
+//                 obj['address.billing.pincode'] = address.billing.pincode
+//             }
+        
+//     } 
+//     if (files && files.length > 0){
+//     let uploadedFileURL = await awsObj.uploadFile(files[0]);
+//     //console.log("string1",uploadedFileURL)
+//     if(uploadedFileURL){
+//       //console.log("string2",uploadedFileURL)
+//       obj['profileImage']=uploadedFileURL
+//     }
+//   }
+//   //console.log(uploadedFileURL)
+  
+//         ///---------------------------------------Validation Ends --------------------------------//
+//         //const encrypt = await bcrypt.hash(password, 10)
+//         //let uploadedFileURL = await uploadFile(files[0]);
+//         const updatedUserData = await userModel.findOneAndUpdate({ _id: userId },obj,{new:true})
+           
+        
+  
+//         res.status(201).send({ status: true,message:`data upadated successfully`, data: updatedUserData })
+//         }
+//     } catch (error) {
+//         console.log(error)
+//         res.status(500).send({ status: false, msg: error.message });
+//     }
+//   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 module.exports = { userRegistration, userLogin, getUserList, updateUserList }
