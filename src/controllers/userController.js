@@ -156,21 +156,21 @@ const updateUserList = async (req, res) => {
         let userId = req.params.userId
         let tokenId = req.userId
         let updateBody = req.body
-        const data = await userModel.findById(userId)
-        if (!data) {
-            return res.status(404).send({ status: false, message: "User does not exist with this userid" })
+        if (!(validateBody.isValidObjectId(userId) && validateBody.isValidObjectId(tokenId))) {
+            return res.status(400).send({ status: false, message: "userId or token is not valid" });;
         }
         if (!(userId.toString() == tokenId.toString())) {
             return res.status(401).send({ status: false, message: `Unauthorized access! Owner info doesn't match` });
         }
-        if (!(validateBody.isValidObjectId(userId) && validateBody.isValidObjectId(tokenId))) {
-            return res.status(400).send({ status: false, message: "userId or token is not valid" });;
+        const data = await userModel.findById(userId)
+        if (!data) {
+            return res.status(404).send({ status: false, message: "User does not exist with this userid" })
         }
         const { fname, lname, email, phone} = updateBody;
         if (!validateBody.isValidRequestBody(updateBody)) {
             return res.status(400).send({ status: false, message: "Please provide data to proceed your update User details" });
         }
-        if ( fname || lname || email || phone ) {
+        
             if (!validateBody.isString(fname)) {
                 return res.status(400).send({ status: false, message: "If you are providing fname key you also have to provide its value" });
             }
@@ -208,7 +208,7 @@ const updateUserList = async (req, res) => {
             }, { new: true });
 
             res.status(200).send({ status: true, message: "user profile updated successfull", data: updateProfile });
-        }
+        
     } catch (err) {
         console.log(err)
         return res.status(500).send({ message: err.message });

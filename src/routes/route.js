@@ -33,7 +33,7 @@ router.get('/questions/:questionId',questionController.getquestionlist)
  router.put('/questions/:questionId',myMiddleware.getUserDetails,questionController.updateQuestion)
 
 // //-----------------FIFTH API DELETE QUESTION FROM DB
- router.delete('/questions/:questionId',questionController.deleteQuestion)
+ router.delete('/questions/:questionId',myMiddleware.getUserDetails,questionController.deleteQuestion)
 
 
 
@@ -45,10 +45,10 @@ router.get('/questions/:questionId',questionController.getquestionlist)
  router.get('/questions/:questionId/answers',answerController.getQuestionAnswer)
 
 // // //-----------------THIRD API UPDATE ANSWER DETAIL
-//  router.put('/answer',myMiddleware.getUserDetails,cartController.getCartList)
+  router.put('/answers/:answerId',myMiddleware.getUserDetails,answerController.updateAnswers)
 
 // // //-----------------FOURTH API DELETE ANSWER DETAIL
-// router.delete('/answer',myMiddleware.getUserDetails,cartController.deleteCart)
+ router.delete('/answers/:answerId',myMiddleware.getUserDetails,answerController.deleteAnswer)
 
 
 

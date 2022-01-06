@@ -9,14 +9,14 @@ const createAnswer = async function (req, res) {
     try {
         const userId = req.body.answeredBy
         const questionId = req.body.questionId
-        const tokenId=req.userId
+        const tokenId = req.userId
         const requestBody = req.body
 
         if (!validateBody.isValidObjectId(questionId)) {
-        return res.status(404).send({ status: false, message: "questionId is not valid" })
+            return res.status(404).send({ status: false, message: "questionId is not valid" })
         }
         if (!validateBody.isValidObjectId(userId)) {
-           return res.status(400).send({ status: false, msg: "userId is not valid" })
+            return res.status(400).send({ status: false, msg: "userId is not valid" })
         }
         if (!(validateBody.isValidObjectId(userId) && validateBody.isValidObjectId(tokenId))) {
             return res.status(400).send({ status: false, message: "userId or token is not valid" });;
@@ -26,111 +26,141 @@ const createAnswer = async function (req, res) {
         }
         const user = await userModel.findById(userId)
         if (!user) {
-            res.status(400).send({ status: false, msg: "user not found" })
+            res.status(404).send({ status: false, msg: "user not found" })
         }
-        const questiondetail = await questionModel.findOne({ _id : questionId, isDeleted: false })
+        const questiondetail = await questionModel.findOne({ _id: questionId, isDeleted: false })
         if (!questiondetail) {
-            return res.status(404).send({ status: false, message: "question don't exist or it's deleted" })
+            return res.status(400).send({ status: false, message: "question don't exist or it's deleted" })
         }
-        let { answeredBy, text  } = requestBody
+        let { answeredBy, text } = requestBody
         if (!validateBody.isValid(text)) {
-            return res.status(400).send({ status: false, message: "Please provide text Details " });
+            return res.status(400).send({ status: false, message: "Please provide text detail to create answer " });
         }
-        let answer = { answeredBy , text ,questionId }
+        let answer = { answeredBy, text, questionId }
         const answerData = await answerModel.create(answer);
-        return res.status(201).send({ status: true, message: 'Success', data: answerData });
+        return res.status(201).send({ status: true, message: 'Successfully Answer Data Created', data: answerData });
     } catch (err) {
-console.log(err)
+        console.log(err)
         return res.status(500).send({ status: false, msg: err.message });
     }
 }
 
 
-//-----------------SECOND API UPDATE ANSWER
+//-----------------SECOND API GET ANSWER
 const getQuestionAnswer = async function (req, res) {
     try {
-        let paramQuestion = req.params.questionId
-         console.log(paramQuestion)
-        if (!validateBody.isValidObjectId(paramQuestion)) {
-            return res.status(400).send({ status: false, message: `${paramQuestion} is not a valid question id  ` })
+        const questionId = req.params.questionId
+        if (!(validateBody.isValidObjectId(questionId))) {
+            return res.status(400).send({ status: false, message: `${questionId} is not a valid id` });
         }
-        let checkParams = await questionModel.findOne({ _id: paramQuestion, isDeleted: false });
-        if (!checkParams) {
-            return res.status(404).send({ status: false, msg: "There is no question exist with this id" });
+        const questionFound = await questionModel.findOne({ _id: questionId, isDeleted: false })
+        if (!questionFound) {
+            return res.status(400).send({ status: false, msg: "question does not exist" })
         }
-          let checkAnswer = await questionModel.findOne({ _id: paramQuestion});
-        if (!checkAnswer) {
-            return res.status(404).send({ status: false, msg: "There is no question exist with this id" });
+        const answerFound = await answerModel.find({ questionId: questionId, isDeleted: false })
+        if (!answerFound) {
+            return res.status(400).send({ status: false, msg: "answer does not exist" })
         }
-               return res.status(200).send({ status: true, msg: "Answer List ", data: checkAnswer })
-    
-    
-    }
-    catch (err) {
-        return res.status(500).send({ status: false, msg: err.message });
+        const data = questionFound.toObject()
+        data['answer'] = answerFound
+        return res.status(200).send({ status: true, msg: "Successfully found data", data: data })
+
+    } catch (err) {
+        return res.status(500).send({ status: false, message: err.message })
     }
 }
 
-// //-----------------THIRD API GET CART DETAIL
-// const getCartList = async (req, res) => {
-//     try {
-//         const userId = req.params.userId
-//         let tokenId = req.userId
-//         console.log(userId)
-
-//         if (!(validateBody.isValidObjectId(userId) && validateBody.isValidObjectId(tokenId))) {
-//             return res.status(400).send({ status: false, message: "userId or token is not valid" });;
-//         }
-//         if (!(userId.toString() == tokenId.toString())) {
-//             return res.status(401).send({ status: false, message: `Unauthorized access! Owner info doesn't match` });
-//         }
-//         const checkUser = await cartModel.findOne({ userId: userId })
-//         if (!checkUser) {
-//             return res.status(404).send({ status: false, msg: "There is no cart exist with this user id" });
-//         }
-
-//         return res.status(200).send({ status: true, message: 'User cart details', data: checkUser });
-//     }
-//     catch (err) {
-//         console.log(err)
-//         return res.status(500).send({ status: false, msg: err.message });
-//     }
-// }
 
 
+//-----------------THIRD API UPDATE ANSWERS DETAIL
+const updateAnswers = async function (req, res) {
+    try {
+        let requestBody = req.body
+        const answerId = req.params.answerId
+        const tokenId = req.userId
 
-// //-----------------FOURTH API DELETE CART DETAIL
-// const deleteCart = async (req, res) => {
-//     try {
-//         const userId = req.params.userId
-//         let tokenId = req.userId
-//         if (!(validateBody.isValidObjectId(userId) && validateBody.isValidObjectId(tokenId))) {
-//             return res.status(400).send({ status: false, message: "userId or token is not valid" });;
-//         }
-//         if (!(userId.toString() == tokenId.toString())) {
-//             return res.status(401).send({ status: false, message: `Unauthorized access! Owner info doesn't match` });
-//         }
-//         const checkCart = await cartModel.findOne({ userId: userId })
-//         if (!checkCart) {
-//             return res.status(404).send({ status: false, msg: "Cart doesn't exist" })
-//         }
-//         const user = await userModel.findById(userId)
-//         if (!user) {
-//             return res.status(404).send({ status: false, msg: "user doesn't exist" })
-//         }
-//         const deleteCart = await cartModel.findOneAndUpdate({ userId: userId }, { items: [], totalPrice: 0, totalItems: 0 }, { new: true })
-//         res.status(200).send({ status: true, msg: "Successfully deleted", data: deleteCart })
-//     }
-//     catch (err) {
-//         console.log(err)
-//         return res.status(500).send({ status: false, msg: err.message });
-//     }
+        const Answer = await answerModel.findOne({ _id: answerId, isDeleted: false })
+        if (!Answer) {
+            return res.status(404).send({ status: false, message: `Answer Does Not exist with this Id` })
+        }
+        if (!(Answer.answeredBy.toString() == tokenId.toString())) {
+            return res.status(401).send({ status: false, message: `Unauthorized access! Owner info doesn't match` });
+        }
+        if (!validateBody.isValidRequestBody(requestBody)) {
+            return res.status(400).send({ status: false, message: 'Invalid request parameters. Please provide  details to update' })
+        }
+        if (!validateBody.isValidObjectId(Answer.questionId)) {
+            return res.status(400).send({ status: false, message: "questionId is not valid" })
+        }
+
+        //-----UPDATE BODY DETAILS
+        let { text } = requestBody
+
+        if (!validateBody.isString(text)) {
+            return res.status(400).send({ status: false, message: "Text is missing ! Please provide the Text to update." })
+        }
+
+        let updateAnswer = await answerModel.findOneAndUpdate({ _id: answerId }, { text: text }, { new: true });
+
+        res.status(200).send({ status: true, message: "answer updated successfully", data: updateAnswer });
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).send({ status: false, message: error.message })
+    }
+}
 
 
-// }
+// -----------------FOURTH API DELETE ANSWER DETAIL
+const deleteAnswer = async (req, res) => {
 
+    try {
+        const requestBody = req.body
+        const ansId = req.params.answerId
+        const tokenId = req.userId
+        const userId = req.body.userId
+        const questionId = req.body.questionId
 
-module.exports = { createAnswer, getQuestionAnswer }
+        if (!validateBody.isValidObjectId(ansId)) {
+            return res.status(400).send({ status: false, Message: "Please provide vaild answer ID" })
+        }
+        if (!validateBody.isValidRequestBody(requestBody)) {
+            return res.status(400).send({ status: false, Message: "Please provide body for delete Answer data" })
+        }
+        if (!validateBody.isValid(questionId)) {
+            return res.status(400).send({ status: false, Message: "Please provide questionId" })
+        }
+        if (!validateBody.isValidObjectId(questionId)) {
+            return res.status(400).send({ status: false, Message: "Please provide vaild questionId" })
+        }
+       
+        if (!validateBody.isValid(userId)) {
+            return res.status(400).send({ status: false, Message: "Please provide userId" })
+        }
+        if (!validateBody.isValidObjectId(userId)) {
+            return res.status(400).send({ status: false, Message: "Please provide vaild userId" })
+        }
+       
+        const answer = await answerModel.findOne({ _id: ansId, isDeleted: false })
+
+        if (!answer) {
+            return res.status(404).send({ status: true, Message: "No answers found for this ID" })
+        }
+        if (!(questionId == answer.questionId)) {
+            return res.status(400).send({ status: false, Message: "Provided answerId is not of the provided valid questionId" })
+        }
+        if (!(userId == tokenId)) {
+            return res.status(401).send({ status: false, Message: "Unauthorized access! Owner info doesn't match " })
+        }
+        const deletedAns = await answerModel.findOneAndUpdate({ _id: ansId }, { isDeleted: true, deletedAt: new Date() }, { new: true })
+        return res.status(200).send({ status: true, msg: "Successfully Answer Deleted", data: deletedAns })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ status: false, message: error.message });
+    }
+}
+
+module.exports = { createAnswer, getQuestionAnswer, updateAnswers, deleteAnswer }
 
 
 
