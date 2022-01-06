@@ -35,7 +35,7 @@ const isString = function (value) {
 const isValidMobileNum = function (value) {
 
     //--INDIAN MOBILE PHONE NUMBER VALIDATION
-    if (!(/^[6-9]\d{9}$/.test(value))) {
+    if (!(/^[6-9]\d{9}$/.test(value.trim()))) {
         return false
     }
     return true
@@ -70,9 +70,6 @@ let alphabetTestOfString = function (value) {
 const isValidstatus = function(status) {
     return ['pending', 'cancelled', 'completed'].indexOf(status) !== -1
 }
-
-
-
 
 module.exports = {validateEmail,
     isValid, isValidRequestBody, isValidSyntaxOfEmail,

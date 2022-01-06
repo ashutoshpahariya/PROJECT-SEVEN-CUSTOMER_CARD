@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router()
 const userController = require('../controllers/userController')
-const productController = require('../controllers/productController')
-const cartController = require('../controllers/cartController')
-const orderController = require('../controllers/orderController')
+const questionController = require('../controllers/questionController')
+const answerController = require('../controllers/answerController')
 const myMiddleware = require('../middleWares/middleWare')
 
 
@@ -20,45 +19,39 @@ router.put('/user/:userId',myMiddleware.getUserDetails,userController.updateUser
 
 
 
-//-----------------FEATURE II - PRODUCT API
-//-----------------FIRST API CREATE PRODUCT
-router.post('/products',productController.createProduct)
+// //-----------------FEATURE II -QUESTION API
+// //-----------------FIRST API CREATE QUESTION
+ router.post('/questions',myMiddleware.getUserDetails,questionController.createQuestion)
 
-//-----------------SECOND API GET PRODUCT DETAIL
-router.get('/products',productController.getproduct)
+// //-----------------SECOND API GET QUESTION DETAIL
+ router.get('/questions',questionController.getQuestion)
 
-//-----------------THIRD API GET LIST OF BOOKS
-router.get('/products/:productId',productController.getproductlist)
+// //-----------------THIRD API GET LIST OF QUESTION
+router.get('/questions/:questionId',questionController.getquestionlist)
 
-//-----------------FOURTH API UPDATE PRODUCT DETAIL
-router.put('/products/:productId',productController.updateProduct)
+// //-----------------FOURTH API UPDATE QUESTION DETAIL
+ router.put('/questions/:questionId',myMiddleware.getUserDetails,questionController.updateQuestion)
 
-//-----------------FIFTH API DELETE PRODUCT FROM DB
-router.delete('/products/:productId',productController.deleteProduct)
-
-
-
-//-----------------FEATURE III - CART API
-//-----------------FIRST API CREATE PRODUCT
-router.post('/users/:userId/cart',myMiddleware.getUserDetails,cartController.CartProduct)
-
-//-----------------SECOND API UPDATE CART DETAIL
-router.put('/users/:userId/cart',myMiddleware.getUserDetails,cartController.updateCartList)
-
-//-----------------THIRD API GET CART DETAIL
-router.get('/users/:userId/cart',myMiddleware.getUserDetails,cartController.getCartList)
-
-//-----------------FOURTH API DELETE CART DETAIL
-router.delete('/users/:userId/cart',myMiddleware.getUserDetails,cartController.deleteCart)
+// //-----------------FIFTH API DELETE QUESTION FROM DB
+ router.delete('/questions/:questionId',questionController.deleteQuestion)
 
 
 
-//-----------------FEATURE IV - ORDER API
-//-----------------FISRT API CREATE ORDER
-router.post('/users/:userId/orders',myMiddleware.getUserDetails,orderController.createOrder)
+// //-----------------FEATURE III - ANSWER API
+// //-----------------FIRST API CREATE ANSWER
+ router.post('/answers',myMiddleware.getUserDetails,answerController.createAnswer)
 
-//-----------------SECOND API UPDATE ORDER DETAIL
-router.put('/users/:userId/orders',myMiddleware.getUserDetails,orderController.updateOrder)
+// //-----------------SECOND API GET ANSWER DETAIL
+ router.get('/questions/:questionId/answers',answerController.getQuestionAnswer)
+
+// // //-----------------THIRD API UPDATE ANSWER DETAIL
+//  router.put('/answer',myMiddleware.getUserDetails,cartController.getCartList)
+
+// // //-----------------FOURTH API DELETE ANSWER DETAIL
+// router.delete('/answer',myMiddleware.getUserDetails,cartController.deleteCart)
+
+
+
 
 
 module.exports = router;
