@@ -7,6 +7,7 @@ const questionSchema = new mongoose.Schema({
     tags: [{type: String  , trim:true}],
 
     askedBy:
+    
     { type: mongoose.Schema.Types.ObjectId, ref: 'userModel' },
 
     deletedAt:   Date,

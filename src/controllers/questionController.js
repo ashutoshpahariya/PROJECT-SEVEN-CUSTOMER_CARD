@@ -18,8 +18,6 @@ const createQuestion = async (req, res) => {
         if (!(userId == tokenId.toString())) {
             return res.status(401).send({ status: false, message: `Unauthorized access! Owner info doesn't match` });
         }
-        console.log(tokenId)
-        console.log(userId)
 
         if (!validateBody.isValidRequestBody(requestBody)) {
             return res.status(400).send({ status: false, message: "Please provide data for successful Question create" });
@@ -36,9 +34,14 @@ const createQuestion = async (req, res) => {
                 return res.status(400).send({ status: false, message: "Please provide tags or tags field" });;
             }
         }
+        let userscore = await userModel.findById(userId)
+        if (userscore.creditScore < 100) {
+            return res.status(400).send({ status: false, message: "User does not have permission to create Question" });;
+        }
         let question = { description, tags, askedBy }
         question.tags = tags.split(",")
         const questionData = await questionModel.create(question);
+        await userModel.findOneAndUpdate({ _id: userId }, { $inc: { creditScore: -100 } })
         return res.status(201).send({ status: true, message: 'Successfully Question Created', data: questionData });
     }
     catch (err) {
@@ -48,71 +51,50 @@ const createQuestion = async (req, res) => {
 }
 
 //--------SECOND API GET QUESTION DETAILS BY QUERY PARAM
-const getQuestion = async (req, res) => {
+
+const getQuestion = async function (req, res) {
     try {
-        let filterQuery = req.query;
-        let { tags, sort } = filterQuery;
+        let filter = { isDeleted: false }
+        let querybody = req.query;
 
-        if (tags || sort) {
-            let query = {}
-            query['isDeleted'] = false;
-            if (tags) {
-                tags = tags.trim()
-                query['tags'] = tags
-            }
-            if (sort) {
-                if (sort == "descending") {
-                    var getAllQuestion = await questionModel.find(query).sort({ 'createdAt': -1 })
-                }
-                if (sort == "ascending") {
-                    var getAllQuestion = await questionModel.find(query).sort({ 'createdAt': 1 })
-                }
-            } else {
-                var getAllQuestion = await questionModel.find(query)
-            }
-            const countAllquestion = getAllQuestion.length
-            if (!(countAllquestion > 0)) {
-                return res.status(404).send({ status: false, msg: "No question found" })
-            }
-            let quesAns = []
-            for (let i = 0; i < getAllQuestion.length; i++) {
-                quesAns.push(getAllQuestion[i].toObject())
-            }
-            let answer = await answerModel.find()
-            for (Ques of quesAns) {
-                for (Ans of answer) {
-                    if ((Ques._id).toString() == (Ans.questionId).toString()) {
-                        Ques['answers'] = Ans
-                    }
-                }
-            }
-            return res.status(200).send({ status: true, message: `${countAllquestion} Successfully Question Answer Found`, data: quesAns });
-        }
-        let getquestion = await questionModel.find()
-        const countquestion = getquestion.length
-        if (!(countquestion > 0)) {
-            return res.status(404).send({ status: false, msg: "No question found" })
-        }
-        let WithoutFilterQuesAns = []
-        for (let i = 0; i < getquestion.length; i++) {
-            WithoutFilterQuesAns.push(getquestion[i].toObject())
-        }
-        let TotalAnswer = await answerModel.find({questionId: getquestionId,isDeleted:false})
-        for (Ques of WithoutFilterQuesAns) {
-            for (Ans of TotalAnswer) {
-                if ((Ques._id).toString() == (Ans.questionId).toString()) {
-                    Ques['answers'] = Ans
-                }
-            }
-        }
-        return res.status(200).send({ status: true, msg: `${countquestion} All Question Answers Data`, data: WithoutFilterQuesAns })
-    } catch (err) {
-        console.log(err)
-        return res.status(500).send({ status: false, msg: err.message })
+        //extract Params
+        const { sort, tags } = querybody
 
+        if (!validateBody.isString(tags)) {
+            return res.status(400).send({ status: false, message: "Please provide tags data to Fetch details of Question" });
+        }
+        if (tags) {
+             (!validateBody.isValid(tags)) 
+                 return res.status(400).send({ status: false, message: "Please provide Valid tags data to Fetch details of Question" });
+             
+        }
+        if (validateBody.isValid(tags)) {
+
+            const tagsArr = tags.split(',');
+            filter['tags'] = { $all: tagsArr }
+        }
+        if (validateBody.isValid(sort)) {
+            if (sort == "ascending") {
+                var data = await questionModel.find(filter).lean().sort({ createdAt: 1 })
+            }
+            if (sort == "descending") {
+                var data = await questionModel.find(filter).lean().sort({ createdAt: -1 });
+            }
+        }
+        if (!sort) {
+            var data = await questionModel.find(filter).lean();
+        }
+        for (let i = 0; i < data.length; i++) {
+            let answer = await answerModel.find({ questionId: data[i]._id })
+            data[i].answers = answer
+        }
+        return res.status(200).send({ status: true, Message: "Question List", data: data })
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ status: false, message: error.message });
     }
 }
-
 
 //-----------------THIRD API GET LIST OF BOOKS
 const getquestionlist = async (req, res) => {

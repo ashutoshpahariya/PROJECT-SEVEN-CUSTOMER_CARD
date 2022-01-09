@@ -12,6 +12,7 @@ const answerSchema = new mongoose.Schema({
         { type: mongoose.Schema.Types.ObjectId, ref: 'questionModel', required: true },
 
     isDeleted: { type: Boolean, default: false },
+
     deletedAt: Date,
 }
     , { timestamps: true })

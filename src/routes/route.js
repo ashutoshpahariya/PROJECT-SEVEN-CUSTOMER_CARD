@@ -13,42 +13,42 @@ router.post('/user', userController.userRegistration)
 //-----------------SECOND API USER LOGIN
 router.post('/userlogin', userController.userLogin)
 //-----------------THIRD API GET USER DETAILS
-router.get('/user/:userId',myMiddleware.getUserDetails,userController.getUserList)
+router.get('/user/:userId', myMiddleware.getUserDetails, userController.getUserList)
 //-----------------THIRD API UPDATE USER DETAILS
-router.put('/user/:userId',myMiddleware.getUserDetails,userController.updateUserList)
+router.put('/user/:userId', myMiddleware.getUserDetails, userController.updateUserList)
 
 
 
 // //-----------------FEATURE II -QUESTION API
 // //-----------------FIRST API CREATE QUESTION
- router.post('/questions',myMiddleware.getUserDetails,questionController.createQuestion)
+router.post('/questions', myMiddleware.getUserDetails, questionController.createQuestion)
 
 // //-----------------SECOND API GET QUESTION DETAIL
- router.get('/questions',questionController.getQuestion)
+router.get('/questions', questionController.getQuestion)
 
 // //-----------------THIRD API GET LIST OF QUESTION
-router.get('/questions/:questionId',questionController.getquestionlist)
+router.get('/questions/:questionId', questionController.getquestionlist)
 
 // //-----------------FOURTH API UPDATE QUESTION DETAIL
- router.put('/questions/:questionId',myMiddleware.getUserDetails,questionController.updateQuestion)
+router.put('/questions/:questionId', myMiddleware.getUserDetails, questionController.updateQuestion)
 
 // //-----------------FIFTH API DELETE QUESTION FROM DB
- router.delete('/questions/:questionId',myMiddleware.getUserDetails,questionController.deleteQuestion)
+router.delete('/questions/:questionId', myMiddleware.getUserDetails, questionController.deleteQuestion)
 
 
 
 // //-----------------FEATURE III - ANSWER API
 // //-----------------FIRST API CREATE ANSWER
- router.post('/answers',myMiddleware.getUserDetails,answerController.createAnswer)
+router.post('/answers', myMiddleware.getUserDetails, answerController.createAnswer)
 
 // //-----------------SECOND API GET ANSWER DETAIL
- router.get('/questions/:questionId/answers',answerController.getQuestionAnswer)
+router.get('/questions/:questionId/answers', answerController.getQuestionAnswer)
 
 // // //-----------------THIRD API UPDATE ANSWER DETAIL
-  router.put('/answers/:answerId',myMiddleware.getUserDetails,answerController.updateAnswers)
+router.put('/answers/:answerId', myMiddleware.getUserDetails, answerController.updateAnswers)
 
 // // //-----------------FOURTH API DELETE ANSWER DETAIL
- router.delete('/answers/:answerId',myMiddleware.getUserDetails,answerController.deleteAnswer)
+router.delete('/answers/:answerId', myMiddleware.getUserDetails, answerController.deleteAnswer)
 
 
 

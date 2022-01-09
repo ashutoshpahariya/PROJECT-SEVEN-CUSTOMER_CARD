@@ -11,7 +11,7 @@ const someOtherPlaintextPassword = 'not_bacon';
 const userRegistration = async (req, res) => {
     try {
         const myBody = req.body
-        const { fname, lname, email, phone, password } = myBody;
+        const { fname, lname, email, phone, password, creditScore } = myBody;
         if (!validateBody.isValidRequestBody(myBody)) {
             return res.status(400).send({ status: false, message: "Please provide data for successful registration" });
         }
@@ -37,32 +37,40 @@ const userRegistration = async (req, res) => {
         if (DuplicateEmail) {
             return res.status(400).send({ status: false, message: "This email Id already exists with another user" });
         }
-       
-        if (!validateBody.isValid(password)) {
+
+        if (!validateBody.isValid(password.trim())) {
             return res.status(400).send({ status: false, message: "Please provide password or password field" });;
         }
         if (!(password.trim().length >= 8 && password.trim().length <= 15)) {
             return res.status(400).send({ status: false, message: "Please provide password with minimum 8 and maximum 14 characters" });;
         }
+        if (!validateBody.isValid(creditScore)) {
+            return res.status(400).send({ status: false, message: "Please provide creditScore or creditScore field" });;
+        }
+        if (isNaN(creditScore)) {
+            return res.status(400).send({ status: false, message: "You can't use special character or alphabet in CreditScore" });
+        }
+        if ( creditScore < 0) {
+            return res.status(400).send({ status: false, message: "You can't Insert negative values in CreditScore" });
+        }
 
         //-----------SAVE USER PASSWORD WITH LOOK LIKE HASHED PASSWORD STORED IN THE DATABASE
         const hash = bcrypt.hashSync(password, saltRounds);
-        let userregister = { fname, lname, email, password: hash }
-        if(phone){
+        let userregister = { fname, lname, email, password: hash, creditScore }
+        if (phone) {
             if (!validateBody.isString(phone)) {
                 return res.status(400).send({ status: false, message: "Please provide phone number or phone field" });
             }
             if (!/^(?:(?:\+|0{0,2})91(\s*[\-]\s*)?|[0]?)?[6789]\d{9}$/.test(phone)) {
                 return res.status(400).send({ status: false, message: `Phone number should be a  valid indian number` });
-               
-        } 
-        const userphone = await userModel.findOne({phone :phone })
-        if(userphone){
-        return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
-    }
-    userregister.phone=phone
-    
-}
+            }
+            const userphone = await userModel.findOne({ phone: phone })
+            if (userphone) {
+                return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
+            }
+            userregister.phone = phone
+
+        }
         const userData = await userModel.create(userregister);
         return res.status(201).send({ status: true, message: 'Success', data: userData });
     }
@@ -100,8 +108,8 @@ const userLogin = async (req, res) => {
                 //-----------JWT GENERATE WITH EXPIRY TIME AND PRIVATE KEY
                 const generatedToken = jwt.sign({
                     userId: user._id,
-                  iat: Math.floor(Date.now() / 1000),
-                    exp:   Math.floor(Date.now() / 1000) + 60 * 360
+                    iat: Math.floor(Date.now() / 1000),
+                    exp: Math.floor(Date.now() / 1000) + 60 * 360
                 }, 'developerprivatekey')
 
                 return res.status(200).send({
@@ -166,49 +174,51 @@ const updateUserList = async (req, res) => {
         if (!data) {
             return res.status(404).send({ status: false, message: "User does not exist with this userid" })
         }
-        const { fname, lname, email, phone} = updateBody;
+        const { fname, lname, email, phone } = updateBody;
         if (!validateBody.isValidRequestBody(updateBody)) {
             return res.status(400).send({ status: false, message: "Please provide data to proceed your update User details" });
         }
-        
-            if (!validateBody.isString(fname)) {
-                return res.status(400).send({ status: false, message: "If you are providing fname key you also have to provide its value" });
-            }
-            if (!validateBody.isString(lname)) {
-                return res.status(400).send({ status: false, message: "If you are providing lname key you also have to provide its value" });
-            }
-            if (!validateBody.isString(email)) {
-                return res.status(400).send({ status: false, message: "If you are providing email key you also have to provide its value" });
-            }
-            if (email) {
-                if (!validateBody.isValidSyntaxOfEmail(email)) {
-                    return res.status(404).send({ status: false, message: "Please provide a valid Email Id" });
-                }
-            }
-            const duplicateemail = await userModel.findOne({ email: email });
-            if (duplicateemail) {
-                return res.status(400).send({ status: false, message: "This user email is already exists with another user" });
-            }
-            if (!validateBody.isString(phone)) {
-                return res.status(400).send({ status: false, message: "If you are providing phone key you also have to provide its value" });
-            }
-            if (phone) {
-                if (!/^(?:(?:\+|0{0,2})91(\s*[\-]\s*)?|[0]?)?[6789]\d{9}$/.test(phone.trim())) {
-                    return res.status(400).send({ status: false, message: `Phone number should be a  valid indian number` });
-                }
-            }
-            const duplicatephone = await userModel.findOne({ phone: phone })
-            if (duplicatephone) {
-                return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
-            }
-            let updateProfile = await userModel.findOneAndUpdate({ _id: userId }, {
-                $set: {
-                    fname: fname, lname: lname, email: email, phone
-                }
-            }, { new: true });
 
-            res.status(200).send({ status: true, message: "user profile updated successfull", data: updateProfile });
-        
+        if (!validateBody.isString(fname)) {
+            return res.status(400).send({ status: false, message: "If you are providing fname key you also have to provide its value" });
+        }
+        if (!validateBody.isString(lname)) {
+            return res.status(400).send({ status: false, message: "If you are providing lname key you also have to provide its value" });
+        }
+        if (!validateBody.isString(email)) {
+            return res.status(400).send({ status: false, message: "If you are providing email key you also have to provide its value" });
+        }
+        if (email) {
+            if (!validateBody.isValidSyntaxOfEmail(email)) {
+                return res.status(404).send({ status: false, message: "Please provide a valid Email Id" });
+            }
+        }
+        const duplicateemail = await userModel.findOne({ email: email });
+        if (duplicateemail) {
+            return res.status(400).send({ status: false, message: "This user email is already exists with another user" });
+        }
+        if (!validateBody.isString(phone)) {
+            return res.status(400).send({ status: false, message: "If you are providing phone key you also have to provide its value" });
+        }
+        if (phone) {
+            if (!/^(?:(?:\+|0{0,2})91(\s*[\-]\s*)?|[0]?)?[6789]\d{9}$/.test(phone.trim())) {
+                return res.status(400).send({ status: false, message: `Phone number should be a  valid indian number` });
+            }
+        }
+        if(phone){
+        const duplicatephone = await userModel.findOne({ phone: phone })
+        if (duplicatephone) {
+            return res.status(400).send({ status: false, message: "This phone number already exists with another user" });
+        }
+    }
+        let updateProfile = await userModel.findOneAndUpdate({ _id: userId }, {
+            $set: {
+                fname: fname, lname: lname, email: email, phone
+            }
+        }, { new: true });
+
+        res.status(200).send({ status: true, message: "user profile updated successfull", data: updateProfile });
+
     } catch (err) {
         console.log(err)
         return res.status(500).send({ message: err.message });

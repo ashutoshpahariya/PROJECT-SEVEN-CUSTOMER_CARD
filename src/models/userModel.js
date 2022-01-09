@@ -6,12 +6,14 @@ const userSchema = new mongoose.Schema({
 
     lname: { type: String, required: true, trim: true },
 
-    email: { type: String,required:true,  lowercase: true, unique: true, trim: true },
+    email: { type: String, required: true, lowercase: true, unique: true, trim: true },
 
-   phone: { type: String, trim: true,unique:true, valid: 'valid Indian mobile number' },
+    phone: { type: String, trim: true, unique: true, valid: 'valid Indian mobile number' },
 
-    password: { type:String, required: true, trim: true },
-    
+    password: { type: String, required: true, trim: true },
+
+    creditScore: { type: Number, required: true, trim: true },
+
 }, { timestamps: true })
 
 module.exports = mongoose.model('userModel', userSchema)
