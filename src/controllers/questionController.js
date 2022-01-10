@@ -42,7 +42,7 @@ const createQuestion = async (req, res) => {
         question.tags = tags.split(",")
         const questionData = await questionModel.create(question);
         await userModel.findOneAndUpdate({ _id: userId }, { $inc: { creditScore: -100 } })
-        return res.status(201).send({ status: true, message: 'Successfully Question Created', data: questionData });
+        return res.status(201).send({ status: true, data: questionData });
     }
     catch (err) {
         console.log(err)
@@ -50,8 +50,9 @@ const createQuestion = async (req, res) => {
     }
 }
 
-//--------SECOND API GET QUESTION DETAILS BY QUERY PARAM
 
+
+//--------SECOND API GET QUESTION DETAILS BY QUERY PARAM
 const getQuestion = async function (req, res) {
     try {
         let filter = { isDeleted: false }
@@ -64,23 +65,25 @@ const getQuestion = async function (req, res) {
             return res.status(400).send({ status: false, message: "Please provide tags data to Fetch details of Question" });
         }
         if (tags) {
-             (!validateBody.isValid(tags)) 
-                 return res.status(400).send({ status: false, message: "Please provide Valid tags data to Fetch details of Question" });
-             
+            (!validateBody.isValid(tags))
+            return res.status(400).send({ status: false, message: "Please provide Valid tags data to Fetch details of Question" });
+
         }
         if (validateBody.isValid(tags)) {
-
             const tagsArr = tags.split(',');
             filter['tags'] = { $all: tagsArr }
         }
+
         if (validateBody.isValid(sort)) {
             if (sort == "ascending") {
                 var data = await questionModel.find(filter).lean().sort({ createdAt: 1 })
             }
+
             if (sort == "descending") {
                 var data = await questionModel.find(filter).lean().sort({ createdAt: -1 });
             }
         }
+
         if (!sort) {
             var data = await questionModel.find(filter).lean();
         }
@@ -88,7 +91,7 @@ const getQuestion = async function (req, res) {
             let answer = await answerModel.find({ questionId: data[i]._id })
             data[i].answers = answer
         }
-        return res.status(200).send({ status: true, Message: "Question List", data: data })
+        return res.status(200).send({ status: true, data: data })
 
     } catch (error) {
         console.log(error)
@@ -96,7 +99,7 @@ const getQuestion = async function (req, res) {
     }
 }
 
-//-----------------THIRD API GET LIST OF BOOKS
+//-----------------THIRD API GET LIST OF QUESTIONS
 const getquestionlist = async (req, res) => {
     try {
         const questionId = req.params.questionId
@@ -111,7 +114,7 @@ const getquestionlist = async (req, res) => {
         const data = question.toObject()
         data['answer'] = answer
         console.log(answer)
-        return res.status(200).send({ status: true, msg: "Successfully found Question Answer", data: data })
+        return res.status(200).send({ status: true,  data: data })
 
 
     } catch (err) {
@@ -120,7 +123,7 @@ const getquestionlist = async (req, res) => {
 }
 
 
-//-----------------FOURTH API UPDATE PRODUCT DETAIL
+//-----------------FOURTH API UPDATE QUESTION DETAIL
 
 const updateQuestion = async function (req, res) {
     try {
@@ -157,7 +160,7 @@ const updateQuestion = async function (req, res) {
         let updateQuestion = await questionModel.findOneAndUpdate({ _id: questionId },
             { description: description, tags: tags }, { new: true });
 
-        res.status(200).send({ status: true, message: "Question updated successfully", data: updateQuestion });
+        res.status(200).send({ status: true,  data: updateQuestion });
 
     } catch (error) {
         console.log(error)
@@ -183,7 +186,7 @@ const deleteQuestion = async (req, res) => {
             return res.status(404).send({ status: false, message: "This Question Data is already deleted" });
         }
         let deleteques = await questionModel.findOneAndUpdate({ _id: params }, { isDeleted: true, deletedAt: Date() }, { new: true });
-        return res.status(200).send({ status: true, message: 'Success', data: deleteques });
+        return res.status(200).send({ status: true,  data: deleteques });
 
     } catch (err) {
         return res.status(500).send({ message: err.message });

@@ -42,7 +42,7 @@ const userRegistration = async (req, res) => {
             return res.status(400).send({ status: false, message: "Please provide password or password field" });;
         }
         if (!(password.trim().length >= 8 && password.trim().length <= 15)) {
-            return res.status(400).send({ status: false, message: "Please provide password with minimum 8 and maximum 14 characters" });;
+            return res.status(400).send({ status: false, message: "Please provide password with minimum 8 and maximum 15 characters" });;
         }
         if (!validateBody.isValid(creditScore)) {
             return res.status(400).send({ status: false, message: "Please provide creditScore or creditScore field" });;
@@ -72,7 +72,7 @@ const userRegistration = async (req, res) => {
 
         }
         const userData = await userModel.create(userregister);
-        return res.status(201).send({ status: true, message: 'Success', data: userData });
+        return res.status(201).send({ status: true, data: userData });
     }
     catch (err) {
         console.log(err)
@@ -93,7 +93,7 @@ const userLogin = async (req, res) => {
             return res.status(400).send({ status: false, message: "Please provide Email id or email field" });;
         }
         if (!validateBody.isValidSyntaxOfEmail(email)) {
-            return res.status(404).send({ status: false, message: "Please provide a valid Email Id" });
+            return res.status(400).send({ status: false, message: "Please provide a valid Email Id" });
         }
         if (!validateBody.isValid(password)) {
             return res.status(400).send({ status: false, message: "Please provide password or password field" });;
@@ -114,7 +114,6 @@ const userLogin = async (req, res) => {
 
                 return res.status(200).send({
                     "status": true,
-                    Message: " user logged Succesfull",
                     data: {
                         userId: user._id,
                         token: generatedToken
@@ -149,7 +148,7 @@ const getUserList = async (req, res) => {
         if (!checkData) {
             return res.status(404).send({ status: false, msg: "There is no user exist with this id" });
         }
-        return res.status(200).send({ status: true, message: 'User profile details', data: checkData });
+        return res.status(200).send({ status: true,  data: checkData });
     }
     catch (err) {
         console.log(err)
@@ -217,7 +216,7 @@ const updateUserList = async (req, res) => {
             }
         }, { new: true });
 
-        res.status(200).send({ status: true, message: "user profile updated successfull", data: updateProfile });
+        res.status(200).send({ status: true,  data: updateProfile });
 
     } catch (err) {
         console.log(err)

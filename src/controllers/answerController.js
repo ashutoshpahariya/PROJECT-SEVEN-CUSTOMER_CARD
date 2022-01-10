@@ -36,7 +36,7 @@ const createAnswer = async function (req, res) {
         }
         const questiondetail = await questionModel.findOne({ _id: questionId, isDeleted: false })
         if (!questiondetail) {
-            return res.status(400).send({ status: false, message: "question don't exist or it's deleted" })
+            return res.status(404).send({ status: false, message: "question don't exist or it's deleted" })
         }
         let { text } = requestBody
         if (!validateBody.isValid(text)) {
@@ -47,15 +47,15 @@ const createAnswer = async function (req, res) {
         //--- COMPARE ANSWEREDBY PUT USER ID===ASKED BY PUT USER ID
         //--- U CANNOT GIVE THE ANSWER OF YOUR OWN QUESTION
         if (!(req.body.answeredBy == userScoredata.askedBy)) {
-            let increaseScore = await userModel.findOneAndUpdate({ _id: userId }, { $inc: { creditScore: + 200 } })
+            let increaseScore = await userModel.findOneAndUpdate({ _id: userId }, { $inc: { creditScore: + 200 } },{new:true})
             const data = { answeredBy:userId , text, questionId }
             const answerData = await answerModel.create(data);
             let totalData = { answerData, increaseScore }
-            return res.status(200).send({ status: false, message: "User Credit Score updated ", data: totalData });
+            return res.status(201).send({ status: true,  data: totalData });
 
         } else {
             
-            return res.status(400).send({ status: true, message: 'Sorry , You cannot Answer Your Own Question' });
+            return res.status(400).send({ status: false, message: 'Sorry , You cannot Answer Your Own Question' });
         }
     } catch (err) {
         console.log(err)
@@ -81,7 +81,7 @@ const getQuestionAnswer = async function (req, res) {
         }
         const data = questionFound.toObject()
         data['answer'] = answerFound
-        return res.status(200).send({ status: true, msg: "Successfully found data", data: data })
+        return res.status(200).send({ status: true,  data: data })
 
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message })
@@ -120,7 +120,7 @@ const updateAnswers = async function (req, res) {
 
         let updateAnswer = await answerModel.findOneAndUpdate({ _id: answerId }, { text: text }, { new: true });
 
-        res.status(200).send({ status: true, message: "answer updated successfully", data: updateAnswer });
+        res.status(200).send({ status: true,  data: updateAnswer });
 
     } catch (error) {
         console.log(error)
@@ -169,8 +169,8 @@ const deleteAnswer = async (req, res) => {
         if (!(userId == tokenId)) {
             return res.status(401).send({ status: false, Message: "Unauthorized access! Owner info doesn't match " })
         }
-        const deletedAns = await answerModel.findOneAndUpdate({ _id: ansId }, { isDeleted: true, deletedAt: new Date() }, { new: true })
-        return res.status(200).send({ status: true, msg: "Successfully Answer Deleted", data: deletedAns })
+        const deletedAns = await answerModel.findOneAndUpdate({ _id: ansId }, { isDeleted: true, deletedAt: new Date() },{ new: true })
+        return res.status(200).send({ status: true,  data: deletedAns })
     } catch (error) {
         console.log(error)
         return res.status(500).send({ status: false, message: error.message });

@@ -15,7 +15,7 @@ const getUserDetails = async function (req, res, next) {
             req.userId = decodedToken.userId
             next();
         } else {
-            return res.status(400).send({ status: false, message: 'Oops...token is not valid' })
+            return res.status(401).send({ status: false, message: 'Oops...token is not valid' })
         }
     } catch (error) {
         return res.status(500).send({ status: false, msg: error.message })
